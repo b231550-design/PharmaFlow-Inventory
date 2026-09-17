@@ -1,3 +1,11 @@
+## 🚀 Live Demo
+Demo credentials
+Email:    demo@pharmaflow.app
+Password: PharmaFlow123!
+
+
+[Visit PharmaFlow](https://pharma-flow-inventory--b231550.replit.app/)
+
 # PharmaFlow
 
 PharmaFlow is a multi-pharmacy inventory workspace for independent pharmacists. It keeps batch-level stock accurate, excludes expired medicines from sellable stock, and dispenses using First-Expiry-First-Out (FEFO).
