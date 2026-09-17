@@ -1,7 +1,8 @@
 ## 🚀 Live Demo
+
 Demo credentials
-Email:    demo@pharmaflow.app
-Password: PharmaFlow123!
+Email:    demo@pharmaflow.app.
+Password: PharmaFlow123!.
 
 
 [Visit PharmaFlow](https://pharma-flow-inventory--b231550.replit.app/)
