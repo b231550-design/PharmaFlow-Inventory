@@ -3,13 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: PharmaFlow pharmacy inventory API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: pharmacy
+    description: Pharmacy profile
+  - name: medicines
+    description: Medicine catalog
+  - name: batches
+    description: Inventory batches
+  - name: inventory
+    description: Inventory summaries and search
+  - name: dispensing
+    description: FEFO dispensing records
+  - name: alerts
+    description: Expiry alerts
 paths:
   /healthz:
     get:
@@ -24,7 +38,390 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a pharmacy owner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegisterInput" }
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Log in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginInput" }
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: End the current session
+      responses:
+        "204": { description: Logged out }
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get the current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /pharmacy:
+    get:
+      operationId: getPharmacy
+      tags: [pharmacy]
+      summary: Get the current pharmacy
+      responses:
+        "200":
+          description: Pharmacy profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Pharmacy" }
+    patch:
+      operationId: updatePharmacy
+      tags: [pharmacy]
+      summary: Update the current pharmacy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PharmacyUpdate" }
+      responses:
+        "200":
+          description: Updated pharmacy
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Pharmacy" }
+  /medicines:
+    get:
+      operationId: listMedicines
+      tags: [medicines]
+      summary: List medicines with stock summaries
+      parameters:
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/Limit" }
+        - { $ref: "#/components/parameters/Search" }
+        - { $ref: "#/components/parameters/MedicineSort" }
+        - { $ref: "#/components/parameters/Order" }
+      responses:
+        "200":
+          description: Paginated medicines
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MedicinePage" }
+    post:
+      operationId: createMedicine
+      tags: [medicines]
+      summary: Create a medicine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MedicineInput" }
+      responses:
+        "201":
+          description: Created medicine
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Medicine" }
+  /medicines/{medicineId}:
+    get:
+      operationId: getMedicine
+      tags: [medicines]
+      summary: Get medicine details and batches
+      parameters: [{ $ref: "#/components/parameters/MedicineId" }]
+      responses:
+        "200":
+          description: Medicine detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MedicineDetail" }
+    patch:
+      operationId: updateMedicine
+      tags: [medicines]
+      summary: Update a medicine
+      parameters: [{ $ref: "#/components/parameters/MedicineId" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MedicineUpdate" }
+      responses:
+        "200":
+          description: Updated medicine
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Medicine" }
+    delete:
+      operationId: deleteMedicine
+      tags: [medicines]
+      summary: Delete a medicine without stock
+      parameters: [{ $ref: "#/components/parameters/MedicineId" }]
+      responses:
+        "204": { description: Deleted }
+  /batches:
+    get:
+      operationId: listBatches
+      tags: [batches]
+      summary: List inventory batches
+      parameters:
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/Limit" }
+        - { $ref: "#/components/parameters/Search" }
+        - { $ref: "#/components/parameters/BatchSort" }
+        - { $ref: "#/components/parameters/Order" }
+      responses:
+        "200":
+          description: Paginated batches
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BatchPage" }
+  /medicines/{medicineId}/batches:
+    post:
+      operationId: createBatch
+      tags: [batches]
+      summary: Add an inventory batch
+      parameters: [{ $ref: "#/components/parameters/MedicineId" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BatchInput" }
+      responses:
+        "201":
+          description: Created batch
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Batch" }
+  /batches/{batchId}:
+    get:
+      operationId: getBatch
+      tags: [batches]
+      summary: Get a batch
+      parameters: [{ $ref: "#/components/parameters/BatchId" }]
+      responses:
+        "200":
+          description: Batch
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Batch" }
+    patch:
+      operationId: updateBatch
+      tags: [batches]
+      summary: Update a batch
+      parameters: [{ $ref: "#/components/parameters/BatchId" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BatchUpdate" }
+      responses:
+        "200":
+          description: Updated batch
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Batch" }
+    delete:
+      operationId: deleteBatch
+      tags: [batches]
+      summary: Delete an empty batch
+      parameters: [{ $ref: "#/components/parameters/BatchId" }]
+      responses:
+        "204": { description: Deleted }
+  /inventory/summary:
+    get:
+      operationId: getInventorySummary
+      tags: [inventory]
+      summary: Get dashboard inventory metrics
+      responses:
+        "200":
+          description: Inventory summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventorySummary" }
+  /inventory/search:
+    get:
+      operationId: searchInventory
+      tags: [inventory]
+      summary: Search medicines
+      parameters:
+        - { $ref: "#/components/parameters/Search" }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventorySearchPage" }
+  /inventory/medicines/{medicineId}:
+    get:
+      operationId: getMedicineInventory
+      tags: [inventory]
+      summary: Get sellable stock and FEFO batches
+      parameters: [{ $ref: "#/components/parameters/MedicineId" }]
+      responses:
+        "200":
+          description: Medicine inventory
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MedicineInventory" }
+  /dispensing:
+    get:
+      operationId: listDispensing
+      tags: [dispensing]
+      summary: List dispensing history
+      parameters:
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/Limit" }
+        - { $ref: "#/components/parameters/Order" }
+      responses:
+        "200":
+          description: Paginated dispensing history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DispensingPage" }
+    post:
+      operationId: dispense
+      tags: [dispensing]
+      summary: Dispense medicine using FEFO allocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DispenseInput" }
+      responses:
+        "201":
+          description: Dispensed medicine
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DispensingRecord" }
+        "409": { $ref: "#/components/responses/Conflict" }
+  /dispensing/{dispensingId}:
+    get:
+      operationId: getDispensing
+      tags: [dispensing]
+      summary: Get a dispensing record
+      parameters: [{ $ref: "#/components/parameters/DispensingId" }]
+      responses:
+        "200":
+          description: Dispensing record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DispensingRecord" }
+  /alerts/expiring:
+    get:
+      operationId: listExpiringAlerts
+      tags: [alerts]
+      summary: List batches expiring soon
+      parameters:
+        - name: days
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 365, default: 30 }
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200":
+          description: Expiring batches
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AlertPage" }
+  /alerts/expired:
+    get:
+      operationId: listExpiredAlerts
+      tags: [alerts]
+      summary: List expired batches
+      parameters:
+        - { $ref: "#/components/parameters/Page" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200":
+          description: Expired batches
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AlertPage" }
 components:
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+    Search:
+      name: search
+      in: query
+      schema: { type: string, maxLength: 100, default: "" }
+    Order:
+      name: order
+      in: query
+      schema: { type: string, enum: [asc, desc], default: asc }
+    MedicineSort:
+      name: sortBy
+      in: query
+      schema: { type: string, enum: [name, createdAt, sellableStock], default: name }
+    BatchSort:
+      name: sortBy
+      in: query
+      schema: { type: string, enum: [expiryDate, quantity, batchNumber], default: expiryDate }
+    MedicineId:
+      name: medicineId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    BatchId:
+      name: batchId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    DispensingId:
+      name: dispensingId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Conflict:
+      description: Request could not be completed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +430,229 @@ components:
           type: string
       required:
         - status
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+      required: [error]
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string }
+        pharmacyId: { type: integer }
+      required: [id, name, email, role, pharmacyId]
+    AuthResponse:
+      type: object
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+        pharmacy: { $ref: "#/components/schemas/Pharmacy" }
+      required: [user, pharmacy]
+    RegisterInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 2, maxLength: 100 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, maxLength: 128 }
+        pharmacyName: { type: string, minLength: 2, maxLength: 120 }
+      required: [name, email, password, pharmacyName]
+    LoginInput:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 1 }
+      required: [email, password]
+    Pharmacy:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        address: { type: string }
+        phone: { type: string }
+        alertThresholdDays: { type: integer }
+      required: [id, name, address, phone, alertThresholdDays]
+    PharmacyUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        address: { type: string, maxLength: 300 }
+        phone: { type: string, maxLength: 40 }
+        alertThresholdDays: { type: integer, minimum: 1, maximum: 365 }
+    Medicine:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        genericName: { type: string }
+        category: { type: string }
+        manufacturer: { type: string }
+        unit: { type: string }
+        reorderLevel: { type: integer }
+        description: { type: string }
+        sellableStock: { type: integer }
+        physicalStock: { type: integer }
+        activeBatches: { type: integer }
+        expiredBatches: { type: integer }
+        earliestExpiry: { type: ["string", "null"], format: date }
+        status: { type: string, enum: [in_stock, low_stock, out_of_stock, expired_only] }
+        createdAt: { type: string, format: date-time }
+      required: [id, name, genericName, category, manufacturer, unit, reorderLevel, description, sellableStock, physicalStock, activeBatches, expiredBatches, earliestExpiry, status, createdAt]
+    MedicineInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        genericName: { type: string, maxLength: 120 }
+        category: { type: string, maxLength: 80 }
+        manufacturer: { type: string, maxLength: 120 }
+        unit: { type: string, maxLength: 40 }
+        reorderLevel: { type: integer, minimum: 0, maximum: 1000000 }
+        description: { type: string, maxLength: 500 }
+      required: [name, genericName, category, manufacturer, unit, reorderLevel]
+    MedicineUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        genericName: { type: string, maxLength: 120 }
+        category: { type: string, maxLength: 80 }
+        manufacturer: { type: string, maxLength: 120 }
+        unit: { type: string, maxLength: 40 }
+        reorderLevel: { type: integer, minimum: 0, maximum: 1000000 }
+        description: { type: string, maxLength: 500 }
+    MedicineDetail:
+      allOf:
+        - $ref: "#/components/schemas/Medicine"
+        - type: object
+          properties:
+            batches:
+              type: array
+              items: { $ref: "#/components/schemas/Batch" }
+          required: [batches]
+    Batch:
+      type: object
+      properties:
+        id: { type: integer }
+        medicineId: { type: integer }
+        medicineName: { type: string }
+        batchNumber: { type: string }
+        expiryDate: { type: string, format: date }
+        quantity: { type: integer }
+        purchasePrice: { type: number }
+        sellingPrice: { type: number }
+        status: { type: string, enum: [active, expiring_soon, expired, depleted] }
+        daysRemaining: { type: integer }
+        createdAt: { type: string, format: date-time }
+      required: [id, medicineId, medicineName, batchNumber, expiryDate, quantity, purchasePrice, sellingPrice, status, daysRemaining, createdAt]
+    BatchInput:
+      type: object
+      properties:
+        batchNumber: { type: string, minLength: 1, maxLength: 80 }
+        expiryDate: { type: string, format: date }
+        quantity: { type: integer, minimum: 0, maximum: 100000000 }
+        purchasePrice: { type: number, minimum: 0 }
+        sellingPrice: { type: number, minimum: 0 }
+      required: [batchNumber, expiryDate, quantity, purchasePrice, sellingPrice]
+    BatchUpdate:
+      type: object
+      properties:
+        batchNumber: { type: string, minLength: 1, maxLength: 80 }
+        expiryDate: { type: string, format: date }
+        quantity: { type: integer, minimum: 0, maximum: 100000000 }
+        purchasePrice: { type: number, minimum: 0 }
+        sellingPrice: { type: number, minimum: 0 }
+    Pagination:
+      type: object
+      properties:
+        page: { type: integer }
+        limit: { type: integer }
+        totalItems: { type: integer }
+        totalPages: { type: integer }
+        hasNextPage: { type: boolean }
+        hasPreviousPage: { type: boolean }
+      required: [page, limit, totalItems, totalPages, hasNextPage, hasPreviousPage]
+    MedicinePage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Medicine" } }
+        pagination: { $ref: "#/components/schemas/Pagination" }
+      required: [items, pagination]
+    BatchPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Batch" } }
+        pagination: { $ref: "#/components/schemas/Pagination" }
+      required: [items, pagination]
+    InventorySummary:
+      type: object
+      properties:
+        totalMedicines: { type: integer }
+        totalSellableStock: { type: integer }
+        lowStockMedicines: { type: integer }
+        expiringSoonBatches: { type: integer }
+        expiredBatches: { type: integer }
+        recentDispensing: { type: array, items: { $ref: "#/components/schemas/DispensingRecord" } }
+      required: [totalMedicines, totalSellableStock, lowStockMedicines, expiringSoonBatches, expiredBatches, recentDispensing]
+    InventorySearchPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Medicine" } }
+        pagination: { $ref: "#/components/schemas/Pagination" }
+      required: [items, pagination]
+    MedicineInventory:
+      type: object
+      properties:
+        medicine: { $ref: "#/components/schemas/Medicine" }
+        eligibleBatches: { type: array, items: { $ref: "#/components/schemas/Batch" } }
+      required: [medicine, eligibleBatches]
+    DispenseInput:
+      type: object
+      properties:
+        medicineId: { type: integer, minimum: 1 }
+        quantity: { type: integer, minimum: 1, maximum: 100000000 }
+      required: [medicineId, quantity]
+    DispensingItem:
+      type: object
+      properties:
+        batchId: { type: integer }
+        batchNumber: { type: string }
+        quantity: { type: integer }
+        expiryDate: { type: string, format: date }
+      required: [batchId, batchNumber, quantity, expiryDate]
+    DispensingRecord:
+      type: object
+      properties:
+        id: { type: integer }
+        medicineId: { type: integer }
+        medicineName: { type: string }
+        totalQuantity: { type: integer }
+        items: { type: array, items: { $ref: "#/components/schemas/DispensingItem" } }
+        dispensedBy: { type: string }
+        dispensedAt: { type: string, format: date-time }
+        remainingSellableStock: { type: integer }
+      required: [id, medicineId, medicineName, totalQuantity, items, dispensedBy, dispensedAt, remainingSellableStock]
+    DispensingPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/DispensingRecord" } }
+        pagination: { $ref: "#/components/schemas/Pagination" }
+      required: [items, pagination]
+    Alert:
+      type: object
+      properties:
+        id: { type: integer }
+        medicineId: { type: integer }
+        medicineName: { type: string }
+        batchNumber: { type: string }
+        expiryDate: { type: string, format: date }
+        quantity: { type: integer }
+        daysRemaining: { type: integer }
+        status: { type: string, enum: [expiring_soon, expired] }
+      required: [id, medicineId, medicineName, batchNumber, expiryDate, quantity, daysRemaining, status]
+    AlertPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Alert" } }
+        pagination: { $ref: "#/components/schemas/Pagination" }
+      required: [items, pagination]
 

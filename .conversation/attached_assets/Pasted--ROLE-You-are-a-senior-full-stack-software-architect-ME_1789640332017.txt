@@ -1,0 +1,844 @@
+# ROLE
+
+You are a senior full-stack software architect, MERN stack engineer, database designer, and product UX engineer.
+
+Your task is to build a complete, working, production-quality full-stack web application for the following problem statement.
+
+Do not create a basic CRUD demo, static frontend, mock dashboard, or incomplete prototype. Build a functional product with real database persistence, working REST APIs, authentication, business logic, usable UI, documentation, and tests.
+
+# 1. PROBLEM STATEMENT
+
+A neighbourhood pharmacy stocks medicines in batches, each with its own expiry date. When dispensing a medicine, the pharmacy should use the batch that expires soonest first, and never dispense an expired batch.
+
+The pharmacist needs to:
+
+* Manage medicines and their individual batches.
+* Track stock quantities and expiry dates.
+* Dispense medicine using First-Expiry-First-Out (FEFO).
+* Prevent expired medicine from being dispensed.
+* Calculate the actual sellable stock of a medicine, excluding expired batches.
+* Search for a medicine and know whether it is currently in date.
+* Receive alerts for batches that are about to expire.
+
+The product must work for any pharmacy, not just a single hardcoded pharmacy.
+
+# 2. PRODUCT VISION
+
+Build a modern pharmacy inventory management SaaS-style web application.
+
+Suggested product name: PharmaFlow.
+
+You may use a better professional name if appropriate, but use the same name consistently throughout the application, README, landing page, and metadata.
+
+Target audience:
+
+* Independent pharmacy owners.
+* Neighbourhood medical stores.
+* Pharmacists.
+* Pharmacy inventory staff.
+
+The application must prioritize inventory correctness and safe dispensing over unnecessary features.
+
+# 3. MANDATORY SUBMISSION REQUIREMENTS
+
+The final project must include all of the following:
+
+1. A real database with persistent data.
+2. REST APIs for core operations.
+3. A usable frontend UI connected to those APIs.
+4. User registration and login.
+5. Search functionality.
+6. A one-page landing page.
+7. Pagination.
+8. Sorting.
+9. Correct FEFO dispensing.
+10. Expired batch protection.
+11. Accurate sellable stock count.
+12. README with complete API endpoint documentation.
+13. Setup and installation instructions.
+14. Seed/demo data for evaluation.
+15. Automated tests for critical business logic.
+
+Do not leave any of these as a future TODO.
+
+# 4. TECH STACK
+
+Use the MERN stack:
+
+Frontend:
+
+* React.js.
+* Vite.
+* JavaScript or TypeScript, preferably TypeScript if you can maintain consistency.
+* React Router.
+* Tailwind CSS or another lightweight modern styling solution.
+* Axios or fetch for API requests.
+* A suitable form validation library if needed.
+* A suitable chart library only where useful.
+
+Backend:
+
+* Node.js.
+* Express.js.
+* TypeScript if using TypeScript consistently.
+* RESTful API architecture.
+* JWT-based authentication.
+* Secure password hashing with bcrypt or bcryptjs.
+* Request validation using Zod, Joi, or another reliable validation library.
+
+Database:
+
+* MongoDB.
+* Mongoose.
+* Proper schema relationships and indexes.
+
+Development:
+
+* npm scripts.
+* Environment variables.
+* ESLint/Prettier where practical.
+* Automated tests using Vitest/Jest and Supertest or an equivalent suitable setup.
+
+Do not introduce unnecessary technologies such as microservices, Redis, Kafka, or Kubernetes. Keep the architecture understandable and easy to continue developing in Antigravity.
+
+# 5. PROJECT STRUCTURE
+
+Create a clean monorepo structure similar to:
+
+pharmaflow/
+├── client/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── layouts/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   ├── types/
+│   │   ├── utils/
+│   │   └── App.tsx
+│   ├── public/
+│   └── package.json
+│
+├── server/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── models/
+│   │   ├── controllers/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── middleware/
+│   │   ├── validators/
+│   │   ├── utils/
+│   │   ├── app.ts
+│   │   └── server.ts
+│   ├── tests/
+│   └── package.json
+│
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── DATABASE_SCHEMA.md
+│   ├── API_DOCUMENTATION.md
+│   ├── BUSINESS_LOGIC.md
+│   ├── FRONTEND_GUIDE.md
+│   ├── SETUP_GUIDE.md
+│   ├── TESTING.md
+│   ├── FUTURE_ROADMAP.md
+│   └── AI_HANDOFF.md
+│
+├── .env.example
+├── .gitignore
+├── package.json
+└── README.md
+
+You may adjust the structure if necessary, but maintain clear separation between frontend, backend, and documentation.
+
+# 6. MULTI-USER AUTHENTICATION
+
+Implement real user registration and login.
+
+Required:
+
+* Registration page.
+* Login page.
+* Logout.
+* Protected application routes.
+* Password hashing.
+* JWT authentication.
+* Auth middleware.
+* Persistent login session using a secure, sensible approach.
+* Proper validation and error messages.
+* No hardcoded passwords or secrets.
+* No storing plaintext passwords.
+* No exposing password hashes in API responses.
+
+User model should include appropriate fields such as:
+
+* name.
+* email.
+* passwordHash.
+* role.
+* createdAt.
+* updatedAt.
+
+Use a sensible role model. At minimum, support a pharmacy owner/admin role and optionally pharmacist/staff roles if you can implement them cleanly.
+
+Every authenticated user must only access data belonging to their own pharmacy/tenant. Do not expose another pharmacy's inventory through IDs, search, or API manipulation.
+
+# 7. DATABASE DESIGN
+
+Design a sensible MongoDB schema.
+
+Recommended entities:
+
+## User
+
+* _id.
+* name.
+* email.
+* passwordHash.
+* role.
+* pharmacyId.
+* createdAt.
+* updatedAt.
+
+## Pharmacy
+
+* _id.
+* name.
+* address/contact fields as appropriate.
+* createdBy.
+* createdAt.
+* updatedAt.
+
+## Medicine
+
+* _id.
+* pharmacyId.
+* name.
+* genericName.
+* category.
+* manufacturer.
+* unit.
+* reorderLevel.
+* description if useful.
+* createdAt.
+* updatedAt.
+
+## Batch
+
+* _id.
+* pharmacyId.
+* medicineId.
+* batchNumber.
+* expiryDate.
+* quantity.
+* purchasePrice if included.
+* sellingPrice if included.
+* createdAt.
+* updatedAt.
+
+## DispensingRecord
+
+* _id.
+* pharmacyId.
+* medicineId.
+* items containing batchId, quantity, and expiryDate snapshot.
+* totalQuantity.
+* dispensedBy.
+* dispensedAt.
+
+You may add supporting entities if necessary.
+
+Important:
+
+* Add appropriate indexes.
+* Enforce unique batch numbers within a medicine/pharmacy where appropriate.
+* Validate that quantities cannot become negative.
+* Define how expired batches are handled.
+* Keep historical dispensing records even after batch stock reaches zero.
+* Explain all design decisions in DATABASE_SCHEMA.md.
+
+# 8. CORE BUSINESS LOGIC — MOST IMPORTANT
+
+Implement FEFO correctly.
+
+FEFO means First-Expiry-First-Out.
+
+When a pharmacist requests to dispense a medicine:
+
+1. Find all batches for that medicine belonging to the authenticated pharmacy.
+2. Exclude batches whose expiry date is before the current business date.
+3. Exclude batches with zero available quantity.
+4. Sort eligible batches by earliest expiry date ascending.
+5. If expiry dates are equal, use a deterministic secondary ordering, such as createdAt ascending or batch ID ascending.
+6. Allocate the requested quantity from the earliest-expiring batch first.
+7. If that batch does not have enough stock, continue to the next eligible batch.
+8. Stop when the requested quantity is fulfilled.
+9. If total sellable stock is insufficient, reject the entire dispensing request without partially reducing stock.
+10. Create a dispensing record showing exactly which batches were used.
+11. Return a clear response with the allocation breakdown and remaining sellable stock.
+
+Example:
+
+Batch A: 50 tablets, expiry 2026-09-30.
+Batch B: 100 tablets, expiry 2026-12-15.
+Batch C: 75 tablets, expiry 2027-03-10.
+Batch D: 40 tablets, expiry 2026-08-01.
+
+Assume the current business date is 2026-09-17.
+
+Sellable stock = 225 tablets.
+
+If the pharmacist dispenses 120 tablets:
+
+* Batch A: 50 tablets.
+* Batch B: 70 tablets.
+* Batch C: 0 tablets.
+* Batch D: 0 tablets because it is expired.
+
+Remaining sellable stock = 155 tablets.
+
+The system must never dispense Batch D.
+
+## Critical correctness requirements
+
+Use a reliable MongoDB transaction/session strategy for stock deduction and dispensing record creation. Handle concurrent dispensing requests safely.
+
+Do not:
+
+* Deduct stock before validating availability.
+* Allow negative quantities.
+* Include expired batches in sellable stock.
+* Select batches based on insertion order.
+* Trust a client-provided expiry status.
+* Rely only on frontend validation for expiry protection.
+* Create a dispensing record if stock deduction fails.
+* Deduct stock without recording the transaction.
+
+If MongoDB transactions require a replica set, document the requirement and provide a practical local development setup.
+
+# 9. SELLABLE STOCK CALCULATION
+
+Implement a reusable backend service for sellable stock.
+
+For each medicine:
+
+sellableStock = sum of quantities from non-expired batches with quantity > 0.
+
+The expiry comparison must use a clearly defined business date and timezone policy. Document whether expiryDate is treated as a date-only value and how the current date is determined.
+
+Provide:
+
+* Sellable quantity.
+* Total physical quantity if useful.
+* Number of active batches.
+* Number of expired batches.
+* Earliest upcoming expiry date.
+* Low-stock status based on reorderLevel.
+
+Never count expired batches in sellable stock.
+
+# 10. REQUIRED REST API ENDPOINTS
+
+Create REST APIs with proper HTTP methods, status codes, validation, authentication, and error responses.
+
+Document every endpoint in README.md and API_DOCUMENTATION.md, including:
+
+* Method.
+* Path.
+* Authentication requirement.
+* Request parameters/body.
+* Example request.
+* Example response.
+* Possible errors.
+
+At minimum implement:
+
+## Authentication
+
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/logout
+GET /api/auth/me
+
+## Pharmacy
+
+GET /api/pharmacy
+PATCH /api/pharmacy
+
+## Medicines
+
+GET /api/medicines
+POST /api/medicines
+GET /api/medicines/:id
+PATCH /api/medicines/:id
+DELETE /api/medicines/:id
+
+## Batches
+
+GET /api/batches
+POST /api/medicines/:medicineId/batches
+GET /api/batches/:id
+PATCH /api/batches/:id
+DELETE /api/batches/:id
+
+## Inventory
+
+GET /api/inventory/summary
+GET /api/inventory/search
+GET /api/inventory/medicines/:medicineId
+
+## Dispensing
+
+POST /api/dispensing
+GET /api/dispensing
+GET /api/dispensing/:id
+
+## Alerts
+
+GET /api/alerts/expiring
+GET /api/alerts/expired
+
+You may add endpoints when needed, but do not remove the core functionality.
+
+# 11. SEARCH
+
+Implement real backend search.
+
+The pharmacist should be able to search by:
+
+* Medicine name.
+* Generic name.
+* Manufacturer if supported.
+
+Search must be connected to the database, not hardcoded frontend data.
+
+Example:
+
+GET /api/inventory/search?q=paracetamol
+
+The result should clearly show:
+
+* Medicine name.
+* Whether in-date stock is available.
+* Sellable quantity.
+* Earliest expiry date.
+* Relevant batch information.
+
+Handle:
+
+* Empty search.
+* No results.
+* Case-insensitive search.
+* Pagination.
+* Reasonable search indexes or query strategy.
+
+# 12. PAGINATION AND SORTING
+
+Implement server-side pagination and sorting for medicine lists, batch lists, and dispensing history.
+
+Example:
+
+GET /api/medicines?page=1&limit=10&sortBy=name&order=asc&search=para
+
+Support sensible sorting fields such as:
+
+* name.
+* createdAt.
+* expiryDate for batch lists.
+* quantity.
+* dispensedAt for dispensing history.
+
+Validate sort fields using an allowlist. Do not allow arbitrary MongoDB query operators or unsafe sort inputs.
+
+Return pagination metadata:
+
+* page.
+* limit.
+* totalItems.
+* totalPages.
+* hasNextPage.
+* hasPreviousPage.
+
+The frontend must provide usable pagination controls and sorting controls.
+
+# 13. EXPIRY ALERTS
+
+Implement expiry alerts based on a configurable threshold, such as 30 days.
+
+Required:
+
+* Upcoming expiry batches.
+* Expired batches separately.
+* Days remaining or an appropriate date status.
+* Batch number.
+* Medicine name.
+* Quantity.
+* Expiry date.
+
+Example:
+GET /api/alerts/expiring?days=30
+
+Do not confuse an expiry alert with an expired status. Expired stock must be clearly distinguished and excluded from dispensing.
+
+# 14. FRONTEND UI
+
+Build a polished, responsive, accessible React UI.
+
+Required pages:
+
+## Public
+
+1. Landing page.
+2. Login.
+3. Registration.
+
+## Protected
+
+1. Dashboard.
+2. Medicines.
+3. Medicine details/batch management.
+4. Dispense medicine.
+5. Expiry alerts.
+6. Dispensing history.
+7. Profile/settings if useful.
+
+## Dashboard
+
+Display:
+
+* Total medicines.
+* Total sellable stock.
+* Low-stock medicines.
+* Batches expiring soon.
+* Expired batches requiring review.
+* Recent dispensing activity.
+
+Do not show misleading metrics. Define exactly what each metric means.
+
+## Medicines page
+
+Include:
+
+* Search.
+* Add medicine.
+* Edit medicine.
+* Delete medicine where safe.
+* Pagination.
+* Sorting.
+* Sellable stock count.
+* Status badges.
+
+## Medicine details
+
+Include:
+
+* Medicine information.
+* Batch list.
+* Batch number.
+* Expiry date.
+* Quantity.
+* Sellable/expired status.
+* Add batch.
+* Edit batch where permitted.
+* Stock summary.
+
+## Dispensing page
+
+Include:
+
+* Search/select medicine.
+* Enter requested quantity.
+* Show current sellable stock.
+* Show earliest-expiring eligible batch.
+* Confirm dispensing.
+* Display allocation breakdown after success.
+* Show clear errors when quantity is unavailable or all stock is expired.
+
+Do not allow the user to manually bypass FEFO through the normal dispensing flow.
+
+## Expiry alerts page
+
+Include:
+
+* Expiring soon tab.
+* Expired tab.
+* Search/filter.
+* Sorting.
+* Pagination.
+
+# 15. ONE-PAGE LANDING PAGE
+
+Create a professional landing page for the product.
+
+It must explain:
+
+1. What the product is.
+2. Key features.
+3. Target audience.
+4. How it helps pharmacies.
+5. Three features that would be built next.
+
+Suggested sections:
+
+* Navbar.
+* Hero section.
+* Problem statement.
+* How PharmaFlow works.
+* Core features.
+* Target audience.
+* Benefits.
+* Three future features.
+* Call to action.
+* Footer.
+
+Suggested future features:
+
+1. Barcode scanning for medicine and batch entry.
+2. Supplier and purchase order management.
+3. Sales analytics and inventory forecasting.
+
+These must be presented as future roadmap features, not falsely claimed as implemented.
+
+The landing page should be visually polished, responsive, and connected to registration/login navigation.
+
+# 16. SECURITY AND VALIDATION
+
+Implement:
+
+* Input validation.
+* Authentication middleware.
+* Authorization checks.
+* Password hashing.
+* Safe error messages.
+* CORS configuration.
+* Helmet or equivalent security headers.
+* Rate limiting on authentication endpoints if practical.
+* No secrets committed to source code.
+* Environment variables.
+* Tenant isolation by pharmacyId.
+* Safe MongoDB query handling.
+* Consistent API error format.
+
+Never expose stack traces or sensitive database details in production responses.
+
+# 17. TESTING
+
+Write automated tests for critical functionality.
+
+At minimum test:
+
+1. User registration.
+2. Login with valid credentials.
+3. Login with invalid credentials.
+4. Protected route access.
+5. Medicine creation.
+6. Batch creation.
+7. Sellable stock calculation excludes expired batches.
+8. FEFO selects earliest-expiring batch.
+9. FEFO splits dispensing across multiple batches.
+10. Expired batch cannot be dispensed.
+11. Insufficient sellable stock rejects the entire request without changing stock.
+12. Stock cannot become negative.
+13. Dispensing history records correct batch allocations.
+14. Search works.
+15. Pagination and sorting work.
+16. Pharmacy data isolation works.
+
+Use test data and a test database strategy that does not destroy a developer's normal database.
+
+Document how to run tests in TESTING.md.
+
+# 18. DOCUMENTATION FILES
+
+Create the following files with useful, accurate content. Do not create empty placeholder markdown files.
+
+## README.md
+
+Include:
+
+* Product overview.
+* Problem statement.
+* Features.
+* Tech stack.
+* Screenshots section placeholder if screenshots are not available.
+* Project structure.
+* Prerequisites.
+* Environment setup.
+* Installation.
+* Database setup.
+* How to run frontend and backend.
+* How to seed demo data.
+* How to run tests.
+* Complete REST API endpoint table.
+* Important FEFO business rules.
+* Known limitations.
+* Future roadmap.
+
+## docs/ARCHITECTURE.md
+
+Explain:
+
+* Frontend/backend architecture.
+* Request flow.
+* Authentication flow.
+* Inventory and dispensing service flow.
+* Error handling.
+* Important design decisions.
+
+## docs/DATABASE_SCHEMA.md
+
+Explain:
+
+* Every collection.
+* Fields and types.
+* Relationships.
+* Indexes.
+* Constraints.
+* Tenant isolation.
+* Why the schema is designed this way.
+
+## docs/API_DOCUMENTATION.md
+
+Document every endpoint with method, path, auth, request, response, errors, pagination and sorting parameters.
+
+## docs/BUSINESS_LOGIC.md
+
+Explain FEFO with examples, sellable stock calculation, expiry handling, atomic dispensing, and concurrency considerations.
+
+## docs/FRONTEND_GUIDE.md
+
+Explain:
+
+* Page structure.
+* Components.
+* API service organization.
+* State management.
+* Route protection.
+* How to add new pages/features.
+
+## docs/SETUP_GUIDE.md
+
+Explain local setup from zero, including environment variables and MongoDB replica set requirements if transactions require them.
+
+## docs/TESTING.md
+
+Explain test commands, test architecture, critical test cases, and known limitations.
+
+## docs/FUTURE_ROADMAP.md
+
+List three next features with descriptions, user value, and possible implementation approach.
+
+## docs/AI_HANDOFF.md
+
+This is especially important.
+
+Write a concise but complete handoff document for another AI coding assistant, such as Antigravity.
+
+It must include:
+
+* Product purpose.
+* Current implemented features.
+* Exact tech stack and versions.
+* Folder structure.
+* Important files and their responsibilities.
+* Database models and relationships.
+* API endpoint summary.
+* FEFO business rules.
+* Sellable stock rules.
+* Authentication flow.
+* Environment variables.
+* Run commands.
+* Test commands.
+* Known limitations.
+* Safe areas for UI changes.
+* Areas that must not be modified without understanding business logic.
+* How to extend the project safely.
+* A checklist for verifying the application after changes.
+
+The handoff must be based on the actual code you create. Do not invent file paths, endpoints, or features.
+
+# 19. SEED DATA
+
+Create a seed script with realistic demo data.
+
+Include:
+
+* Demo pharmacy.
+* Demo user credentials documented clearly.
+* Several medicines.
+* Multiple batches per medicine.
+* Different expiry dates.
+* At least one expired batch.
+* At least one low-stock medicine.
+* At least one medicine with multiple batches to demonstrate FEFO.
+* Sample dispensing records if appropriate.
+
+The seed data must make it easy for an evaluator to understand and test the core problem.
+
+Never use production credentials or real personal information.
+
+# 20. DEVELOPMENT AND QUALITY RULES
+
+* Do not use fake API responses for core features.
+* Do not leave major features as TODOs.
+* Do not hardcode medicine data in the frontend.
+* Do not skip error handling.
+* Do not silently swallow errors.
+* Do not duplicate business logic unnecessarily.
+* Keep code modular and readable.
+* Use meaningful variable and function names.
+* Keep frontend and backend API contracts consistent.
+* Ensure all imports and scripts work.
+* Use consistent date handling.
+* Make the application responsive.
+* Do not overengineer.
+
+If a requirement is ambiguous, choose a sensible implementation, document the decision, and proceed without blocking.
+
+# 21. FINAL ACCEPTANCE CRITERIA
+
+Before declaring the project complete, verify:
+
+* [ ] Fresh installation works.
+* [ ] Environment setup is documented.
+* [ ] MongoDB connection works.
+* [ ] User can register.
+* [ ] User can log in.
+* [ ] Protected routes work.
+* [ ] Medicine CRUD works.
+* [ ] Batch CRUD works.
+* [ ] Sellable stock is accurate.
+* [ ] Expired batches are excluded from sellable stock.
+* [ ] FEFO dispensing is correct.
+* [ ] Dispensing is atomic and recorded.
+* [ ] Insufficient stock does not partially deduct inventory.
+* [ ] Search works.
+* [ ] Expiry alerts work.
+* [ ] Pagination works.
+* [ ] Sorting works.
+* [ ] Landing page includes all required content.
+* [ ] README lists all API endpoints.
+* [ ] Documentation files are complete.
+* [ ] Seed data works.
+* [ ] Automated tests run successfully.
+
+# 22. EXECUTION INSTRUCTIONS
+
+Build the entire project, including frontend, backend, database models, API routes, business logic, tests, seed scripts, and documentation.
+
+Do not just explain how to build it. Actually create the complete source code.
+
+If you have a file creation or code execution environment, use it to create the files and run the relevant validation commands.
+
+At the end, provide:
+
+1. A concise summary of what was implemented.
+2. The exact project structure.
+3. Setup and run commands.
+4. Demo login credentials.
+5. Test commands and results.
+6. Any known limitations.
+7. A list of documentation files created.
+
+Only claim tests or features as completed when they have actually been implemented and verified.

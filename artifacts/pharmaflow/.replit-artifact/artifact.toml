@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "PharmaFlow"
+description = "A multi-pharmacy inventory workspace that protects dispensing accuracy with FEFO stock allocation, expiry alerts, search, and audit history."
+version = "1.0.0"
+id = "artifacts/pharmaflow"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24707
+
+[services.development]
+run = "pnpm --filter @workspace/pharmaflow run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/pharmaflow", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/pharmaflow/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24707"
+BASE_PATH = "/"

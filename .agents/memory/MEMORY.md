@@ -1,0 +1,1 @@
+- [PostgreSQL date-only values](postgres-date-only.md) — normalize raw pg date results before API formatting or expiry calculations.
